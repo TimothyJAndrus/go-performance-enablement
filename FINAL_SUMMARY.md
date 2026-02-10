@@ -109,7 +109,7 @@ This project is the **Go equivalent** of the Rust Performance Enablement project
 ### Go Lambda Functions
 
 | Metric | Target | vs Rust | vs Node.js |
-|--------|--------|---------|------------|
+| -------- | -------- | --------- | ------------ |
 | Cold Start | 100-150ms | +70ms | -50ms |
 | Warm Exec (p99) | 8-12ms | +1-5ms | -11ms |
 | Memory | 80-120MB | +32-72MB | -22-62MB |
@@ -119,7 +119,7 @@ This project is the **Go equivalent** of the Rust Performance Enablement project
 ### Go Kafka Consumer (EKS)
 
 | Metric | Target |
-|--------|--------|
+ | -------- | -------- |
 | Throughput/pod | 8,000-12,000 msgs/sec |
 | Latency (p99) | <15ms |
 | Memory/pod | 200-400MB |
