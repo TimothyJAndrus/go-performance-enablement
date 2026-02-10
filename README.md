@@ -21,6 +21,7 @@ This is the **Go equivalent** of the Rust Performance Enablement project, provid
 ### When to Use Go vs Rust
 
 **Choose Go if:**
+
 - Team already knows Go
 - Rapid development velocity is priority
 - 100-150ms cold starts are acceptable
@@ -28,6 +29,7 @@ This is the **Go equivalent** of the Rust Performance Enablement project, provid
 - Prefer simpler error handling
 
 **Choose Rust if:**
+
 - Need <50ms cold starts
 - Memory efficiency critical (<50MB)
 - Zero-cost abstractions required
@@ -36,7 +38,7 @@ This is the **Go equivalent** of the Rust Performance Enablement project, provid
 
 ## Project Structure
 
-```
+``` TXT
 go-performance-enablement/
 ├── go.mod                      # Go modules configuration
 ├── README.md                   # This file
@@ -79,7 +81,7 @@ go-performance-enablement/
 brew install go
 
 # Verify installation
-go version  # Should be 1.21+
+go version  # Should be 1.24.3+
 
 # Install AWS Lambda tools
 brew install aws-sam-cli
@@ -142,12 +144,14 @@ terraform apply
 ## Implementation Status
 
 ### Completed ✅
+
 - [x] Go module structure
 - [x] Project scaffolding
 - [x] Documentation framework
 - [x] Directory structure
 
 ### In Progress 🔄
+
 - [ ] Shared packages (events, awsutils, metrics)
 - [ ] Lambda function implementations
 - [ ] Kafka consumer implementation
@@ -160,6 +164,7 @@ terraform apply
 ## Lambda Functions
 
 ### 1. Event Router
+
 **Path**: `lambdas/event-router/`
 
 Handles cross-region event routing with circuit breaker pattern.
@@ -184,21 +189,25 @@ func main() {
 ```
 
 ### 2. DynamoDB Streams Processor
+
 **Path**: `lambdas/stream-processor/`
 
 Processes DynamoDB stream changes and replicates across regions.
 
 ### 3. Event Transformer
+
 **Path**: `lambdas/event-transformer/`
 
 Validates and transforms events with schema enforcement.
 
 ### 4. Health Checker
+
 **Path**: `lambdas/health-checker/`
 
 Aggregates health status across regions for failover decisions.
 
 ### 5. API Authorizer
+
 **Path**: `lambdas/authorizer/`
 
 JWT validation for API Gateway with <10ms latency target.
@@ -234,6 +243,7 @@ func main() {
 ```
 
 **Features**:
+
 - SASL/SSL authentication to Confluent Cloud
 - Schema Registry integration for Avro
 - Prometheus metrics export
@@ -243,6 +253,7 @@ func main() {
 ## Shared Packages
 
 ### pkg/events
+
 Common event structures and schemas.
 
 ```go
@@ -269,26 +280,31 @@ type EventMetadata struct {
 ```
 
 ### pkg/awsutils
+
 AWS SDK helpers and utilities.
 
 ### pkg/metrics
+
 Prometheus metrics collection and export.
 
 ## Performance Expectations
 
 ### Go Lambda Functions
+
 - **Cold Start**: 100-150ms (vs 32ms Rust, 200ms Node.js)
 - **Warm Execution**: 8-12ms p99 (vs 7ms Rust, 23ms Node.js)
 - **Memory**: 80-120MB (vs 48MB Rust, 142MB Node.js)
 - **Throughput**: 8,000-10,000 req/s (vs 12,450 Rust, 4,230 Node.js)
 
 ### Go Kafka Consumer (EKS)
+
 - **Throughput**: 8,000-12,000 msgs/sec per pod
 - **Latency**: <15ms p99 processing time
 - **Memory**: ~200-400MB per pod (goroutines are cheap)
 - **Consumer Lag**: <1,000 messages sustained
 
 ### Cost Comparison (per million requests)
+
 - **Go**: $1.05 (between Rust $0.95 and Node.js $1.21)
 - **Rust**: $0.95 (fastest/cheapest)
 - **Node.js**: $1.21
@@ -301,7 +317,7 @@ Prometheus metrics collection and export.
 
 ```bash
 # Install Air for hot reload
-go install github.com/cosmtrek/air@latest
+go install github.com/air-verse/air@latest
 
 # Run with hot reload
 cd lambdas/event-router
@@ -365,6 +381,7 @@ kubectl logs -f -n kafka-consumers -l app=kafka-consumer
 ## CI/CD with GitHub Actions
 
 Workflows automatically:
+
 1. Run tests on PR
 2. Build binaries for Lambda
 3. Build Docker images for EKS
@@ -377,7 +394,7 @@ Workflows automatically:
 
 All services expose metrics on port `:9090/metrics`:
 
-```
+```TXT
 # Kafka consumer metrics
 kafka_messages_consumed_total
 kafka_consumer_lag_seconds
@@ -393,6 +410,7 @@ lambda_duration_seconds
 ### Grafana Dashboards
 
 Pre-configured dashboards for:
+
 - Kafka consumer lag
 - Lambda performance
 - Circuit breaker states
@@ -421,8 +439,8 @@ If migrating from the Rust version:
 
 ⚠️ **Slower Cold Starts**: 100-150ms vs 32ms  
 ⚠️ **More Memory**: 80-120MB vs 48MB  
-⚠️ **GC Pauses**: Occasional (though minimal with Go 1.21+)  
-⚠️ **Less Type Safety**: No compile-time ownership checking  
+⚠️ **GC Pauses**: Occasional (though minimal with Go 1.24.3+)  
+⚠️ **Less Type Safety**: No compile-time ownership checking
 
 ## Next Steps
 
@@ -444,6 +462,7 @@ If migrating from the Rust version:
 ## Comparison with Rust Project
 
 Both projects provide identical functionality:
+
 - ✅ Multi-region active/active architecture
 - ✅ Kafka CDC integration with Qlik
 - ✅ Hybrid Lambda + EKS deployment

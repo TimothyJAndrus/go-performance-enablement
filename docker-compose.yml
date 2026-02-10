@@ -77,13 +77,12 @@ services:
     environment:
       SERVICES: dynamodb,sqs,secretsmanager,lambda,events
       DEBUG: 1
-      DATA_DIR: /tmp/localstack/data
-      LAMBDA_EXECUTOR: docker
+      PERSISTENCE: 1
       DOCKER_HOST: unix:///var/run/docker.sock
     volumes:
       - "./localstack:/etc/localstack/init/ready.d"
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "localstack-data:/tmp/localstack"
+      - "localstack-data:/var/lib/localstack"
     networks:
       - eda-network
 

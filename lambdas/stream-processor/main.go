@@ -182,14 +182,14 @@ func toCDCEvent(record events.DynamoDBEventRecord) (*wguevents.CDCEvent, error) 
 	
 	cdcEvent := &wguevents.CDCEvent{
 		Operation:     operation,
-		TableName:     extractTableName(record.EventSourceARN),
+		TableName:     extractTableName(record.EventSourceArn),
 		Timestamp:     record.Change.ApproximateCreationDateTime.Time,
 		PrimaryKeys:   convertAttributeValues(record.Change.Keys),
 		After:         convertAttributeValues(record.Change.NewImage),
 		Before:        convertAttributeValues(record.Change.OldImage),
 		Metadata: wguevents.CDCMetadata{
 			SourceDatabase: "dynamodb",
-			SourceTable:    extractTableName(record.EventSourceARN),
+			SourceTable:    extractTableName(record.EventSourceArn),
 			Offset:         0,
 			Partition:      0,
 			CaptureTime:    record.Change.ApproximateCreationDateTime.Time,

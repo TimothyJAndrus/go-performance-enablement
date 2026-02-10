@@ -133,7 +133,7 @@ func (kc *KafkaConsumer) consumeMessage(ctx context.Context, processor MessagePr
 			zap.Int64("offset", int64(msg.TopicPartition.Offset)),
 		)
 		
-		metrics.RecordKafkaMessage(topic, partition, kc.consumer.GetMetadata().OriginatingBrokerName, processingDuration, err)
+		metrics.RecordKafkaMessage(topic, partition, "go-cdc-consumers", processingDuration, err)
 		
 		// Don't commit offset on error - message will be reprocessed
 		return err
@@ -154,8 +154,8 @@ func (kc *KafkaConsumer) consumeMessage(ctx context.Context, processor MessagePr
 	metrics.RecordKafkaMessage(topic, partition, "go-cdc-consumers", processingDuration, nil)
 
 	// Calculate and record consumer lag
-	if msg.Timestamp.Valid {
-		lag := time.Since(msg.Timestamp.Time)
+	if !msg.Timestamp.IsZero() {
+		lag := time.Since(msg.Timestamp)
 		metrics.KafkaConsumerLag.WithLabelValues(topic, partition, "go-cdc-consumers").Set(lag.Seconds())
 	}
 

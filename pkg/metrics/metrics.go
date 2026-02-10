@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -198,7 +199,7 @@ func (s *MetricsServer) Start() error {
 
 // Shutdown gracefully shuts down the metrics server
 func (s *MetricsServer) Shutdown(timeout time.Duration) error {
-	ctx, cancel := WithTimeout(nil, timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	return s.server.Shutdown(ctx)
 }

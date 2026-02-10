@@ -46,9 +46,9 @@ This document describes the architecture of the Go-based multi-region event-driv
 
 #### Event Router
 **Purpose**: Routes events between regions with circuit breaker pattern  
-**Runtime**: Go 1.21 on provided.al2023  
+**Runtime**: Go 1.24.3 on provided.al2023  
 **Memory**: 128MB  
-**Timeout**: 30s  
+**Timeout**: 30s
 
 **Key Features**:
 - Circuit breaker (Closed → Open → Half-Open)
@@ -70,9 +70,9 @@ lambdas/event-router/
 
 #### Stream Processor
 **Purpose**: Processes DynamoDB Streams for CDC replication  
-**Runtime**: Go 1.21 on provided.al2023  
+**Runtime**: Go 1.24.3 on provided.al2023  
 **Memory**: 256MB  
-**Timeout**: 60s  
+**Timeout**: 60s
 
 **Key Features**:
 - Handles INSERT, UPDATE, DELETE operations
@@ -87,9 +87,9 @@ lambdas/event-router/
 
 #### Event Transformer
 **Purpose**: Validates, enriches, and normalizes events  
-**Runtime**: Go 1.21 on provided.al2023  
+**Runtime**: Go 1.24.3 on provided.al2023  
 **Memory**: 512MB  
-**Timeout**: 60s  
+**Timeout**: 60s
 
 **Key Features**:
 - Regex-based validation (email, UUID, etc.)
@@ -105,7 +105,7 @@ lambdas/event-router/
 
 #### Health Checker
 **Purpose**: Aggregates health status across regions  
-**Runtime**: Go 1.21 on provided.al2023  
+**Runtime**: Go 1.24.3 on provided.al2023  
 **Memory**: 256MB  
 **Timeout**: 30s  
 **Schedule**: Every 5 minutes (EventBridge)
@@ -120,9 +120,9 @@ lambdas/event-router/
 
 #### API Authorizer
 **Purpose**: JWT validation for API Gateway  
-**Runtime**: Go 1.21 on provided.al2023  
+**Runtime**: Go 1.24.3 on provided.al2023  
 **Memory**: 128MB  
-**Timeout**: 5s  
+**Timeout**: 5s
 
 **Key Features**:
 - HMAC-SHA256 and RSA-256 support
@@ -135,7 +135,7 @@ lambdas/event-router/
 ### 2. Kafka Consumer (EKS)
 
 **Purpose**: High-throughput CDC event processing from Qlik  
-**Runtime**: Go 1.21 in Docker container  
+**Runtime**: Go 1.24.3 in Docker container  
 **Deployment**: Kubernetes Deployment with HPA
 
 **Architecture**:
@@ -286,7 +286,7 @@ Go's native concurrency model provides efficient parallel processing:
 
 **Trade-offs vs Rust**:
 - Runtime overhead: ~2-3ms per goroutine creation
-- GC pauses: ~1ms STW (though rare with Go 1.21+)
+- GC pauses: ~1ms STW (though rare with Go 1.24.3+)
 - Memory: ~5MB base overhead for runtime
 
 ## Error Handling

@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/klauspost/compress/zstd"
 	"github.com/wgu/go-performance-enablement/pkg/awsutils"
-	"github.com/wgu/go-performance-enablement/pkg/events" as wguevents
+	wguevents "github.com/wgu/go-performance-enablement/pkg/events"
 	"github.com/wgu/go-performance-enablement/pkg/metrics"
 	"go.uber.org/zap"
 )

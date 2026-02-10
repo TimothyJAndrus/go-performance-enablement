@@ -9,7 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/wgu/go-performance-enablement/kafka-consumer/consumer"
 	"github.com/wgu/go-performance-enablement/kafka-consumer/processor"
 	"github.com/wgu/go-performance-enablement/pkg/metrics"
@@ -77,7 +76,7 @@ func main() {
 	cancel()
 
 	// Shutdown metrics server
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	_, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer shutdownCancel()
 
 	if err := metricsServer.Shutdown(shutdownTimeout); err != nil {

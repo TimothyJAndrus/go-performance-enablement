@@ -3,7 +3,7 @@
 ## Prerequisites
 
 ```bash
-# Install Go 1.21+
+# Install Go 1.24.3+
 brew install go
 
 # Install Docker Desktop

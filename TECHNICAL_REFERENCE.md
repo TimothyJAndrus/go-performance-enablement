@@ -136,7 +136,7 @@ native, schema, err := codec.NativeFromBinary(msg.Value)
 
 | Runtime | Cold Start (ms) | Improvement vs Go |
 |---------|-----------------|-------------------|
-| **Go 1.21** | **100-150** | Baseline |
+| **Go 1.24.3** | **100-150** | Baseline |
 | Rust | 32 | 68ms faster (⬆️ 68%) |
 | Node.js 20 | 200 | 50ms slower (⬇️ 33%) |
 | Python 3.11 | 250 | 100ms slower (⬇️ 50%) |
@@ -146,7 +146,7 @@ native, schema, err := codec.NativeFromBinary(msg.Value)
 
 | Runtime | Latency (ms) | Throughput (req/s) | Memory (MB) |
 |---------|--------------|---------------------|-------------|
-| **Go 1.21** | **8-12** | **8,000-10,000** | **80-120** |
+| **Go 1.24.3** | **8-12** | **8,000-10,000** | **80-120** |
 | Rust | 7 | 12,450 | 48 |
 | Node.js 20 | 23 | 4,230 | 142 |
 | Python 3.11 | 35 | 2,850 | 158 |
@@ -156,7 +156,7 @@ native, schema, err := codec.NativeFromBinary(msg.Value)
 
 | Runtime | Cost | vs Go |
 |---------|------|-------|
-| **Go 1.21** | **$1.05** | Baseline |
+| **Go 1.24.3** | **$1.05** | Baseline |
 | Rust | $0.95 | $0.10 cheaper (⬇️ 9.5%) |
 | Node.js 20 | $1.21 | $0.16 more (⬆️ 15%) |
 | Python 3.11 | $1.58 | $0.53 more (⬆️ 50%) |
@@ -242,7 +242,7 @@ jobs:
       
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.24.3'
       
       - name: Cache Go modules
         uses: actions/cache@v3

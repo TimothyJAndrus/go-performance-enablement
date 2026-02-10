@@ -23,7 +23,7 @@ if ! command -v docker-compose &> /dev/null; then
 fi
 
 if ! command -v go &> /dev/null; then
-    echo -e "${RED}Go is not installed. Please install Go 1.21+ first.${NC}"
+    echo -e "${RED}Go is not installed. Please install Go 1.24.3+ first.${NC}"
     exit 1
 fi
 
@@ -135,7 +135,7 @@ echo -e "${GREEN}✓ Schemas registered${NC}"
 echo -e "\n${YELLOW}Waiting for LocalStack...${NC}"
 RETRY_COUNT=0
 
-while ! curl -s http://localhost:4566/_localstack/health | grep -q "running"; do
+while ! curl -s http://localhost:4566/_localstack/health | grep -q "available"; do
     RETRY_COUNT=$((RETRY_COUNT + 1))
     if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
         echo -e "${RED}LocalStack failed to start${NC}"

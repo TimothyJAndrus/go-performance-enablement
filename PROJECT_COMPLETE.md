@@ -7,7 +7,7 @@ All implementation and documentation for the Go-based multi-region event-driven 
 ## What Was Built
 
 ### 1. Core Implementation ✅
-- **5 Lambda Functions** (Go 1.21, ARM64)
+- **5 Lambda Functions** (Go 1.24.3, ARM64)
   - event-router: Circuit breaker + cross-region routing
   - stream-processor: DynamoDB Streams CDC
   - event-transformer: Validation + enrichment

@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 )
 
 // AWSClients holds all AWS service clients
@@ -94,7 +95,7 @@ func (c *AWSClients) SendToDeadLetterQueue(ctx context.Context, queueURL, messag
 	input := &sqs.SendMessageInput{
 		QueueUrl:    aws.String(queueURL),
 		MessageBody: aws.String(messageBody),
-		MessageAttributes: map[string]sqs.MessageAttributeValue{
+		MessageAttributes: map[string]types.MessageAttributeValue{
 			"ErrorMessage": {
 				DataType:    aws.String("String"),
 				StringValue: aws.String(errorMessage),

@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Event Router Lambda Function for Cross-Region Event Routing
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: provided.al2023
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        AWS_REGION: us-west-2
+        PARTNER_REGION: us-east-1
+        EVENT_BUS_NAME: partner-event-bus
+        DLQ_URL: https://sqs.us-west-2.amazonaws.com/123456789012/event-router-dlq
+
+Resources:
+  EventRouterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: event-router
+      CodeUri: .
+      Handler: bootstrap
+      Description: Routes events to partner region with circuit breaker pattern
+      Policies:
+        - EventBridgePutEventsPolicy:
+            EventBusName: partner-event-bus
+        - SQSSendMessagePolicy:
+            QueueName: event-router-dlq
+        - DynamoDBStreamReadPolicy:
+            TableName: "*"
+            StreamName: "*"
+      Events:
+        DynamoDBStream:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt EventTable.StreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+            MaximumBatchingWindowInSeconds: 5
+            MaximumRetryAttempts: 2
+            BisectBatchOnFunctionError: true
+            
+  EventTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: events
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      AttributeDefinitions:
+        - AttributeName: event_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: event_id
+          KeyType: HASH
+          
+  DeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: event-router-dlq
+      MessageRetentionPeriod: 1209600  # 14 days
+
+Outputs:
+  EventRouterFunction:
+    Description: Event Router Lambda Function ARN
+    Value: !GetAtt EventRouterFunction.Arn
+  EventRouterFunctionIamRole:
+    Description: Implicit IAM Role created for Event Router function
+    Value: !GetAtt EventRouterFunctionRole.Arn
+  EventTableArn:
+    Description: DynamoDB Events Table ARN
+    Value: !GetAtt EventTable.Arn
+  EventTableStreamArn:
+    Description: DynamoDB Events Table Stream ARN
+    Value: !GetAtt EventTable.StreamArn
