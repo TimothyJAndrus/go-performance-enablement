@@ -52,6 +52,7 @@ def generate_customer_event() -> dict[str, Any]:
     """Generate a CDC event for the customers table."""
     operation = random.choices(["INSERT", "UPDATE", "DELETE"], weights=[0.5, 0.4, 0.1])[0]
     customer_id = str(uuid.uuid4())
+    transaction_id = str(uuid.uuid4())
     
     before_image = None
     after_image = None
@@ -78,16 +79,23 @@ def generate_customer_event() -> dict[str, Any]:
     else:  # DELETE
         before_image = customer_data
     
+    now = datetime.utcnow()
     return {
-        "header": {
-            "operation": operation,
-            "timestamp": datetime.utcnow().isoformat(),
-            "transaction_id": str(uuid.uuid4()),
-            "schema": "public",
-            "table": "customers",
-        },
+        "operation": operation,
+        "table_name": "customers",
+        "schema": "public",
+        "timestamp": now.isoformat() + "Z",
+        "transaction_id": transaction_id,
         "before": before_image,
         "after": after_image,
+        "primary_keys": {"customer_id": customer_id},
+        "metadata": {
+            "source_database": "qlik",
+            "source_table": "customers",
+            "offset": 0,
+            "partition": 0,
+            "capture_time": now.isoformat() + "Z",
+        },
     }
 
 
@@ -96,6 +104,7 @@ def generate_order_event() -> dict[str, Any]:
     operation = random.choices(["INSERT", "UPDATE", "DELETE"], weights=[0.6, 0.35, 0.05])[0]
     order_id = str(uuid.uuid4())
     customer_id = str(uuid.uuid4())
+    transaction_id = str(uuid.uuid4())
     
     before_image = None
     after_image = None
@@ -124,16 +133,23 @@ def generate_order_event() -> dict[str, Any]:
     else:  # DELETE
         before_image = order_data
     
+    now = datetime.utcnow()
     return {
-        "header": {
-            "operation": operation,
-            "timestamp": datetime.utcnow().isoformat(),
-            "transaction_id": str(uuid.uuid4()),
-            "schema": "public",
-            "table": "orders",
-        },
+        "operation": operation,
+        "table_name": "orders",
+        "schema": "public",
+        "timestamp": now.isoformat() + "Z",
+        "transaction_id": transaction_id,
         "before": before_image,
         "after": after_image,
+        "primary_keys": {"order_id": order_id},
+        "metadata": {
+            "source_database": "qlik",
+            "source_table": "orders",
+            "offset": 0,
+            "partition": 0,
+            "capture_time": now.isoformat() + "Z",
+        },
     }
 
 
@@ -182,7 +198,7 @@ def main():
             
             if generator:
                 event = generator()
-                key = event["header"]["transaction_id"]
+                key = event["transaction_id"]
                 value = json.dumps(event)
                 
                 producer.produce(
