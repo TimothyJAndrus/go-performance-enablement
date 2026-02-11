@@ -9,7 +9,7 @@ This is the **Go equivalent** of the Rust Performance Enablement project, provid
 ### Key Differences from Rust Version
 
 | Aspect | Rust Version | Go Version |
-|--------|--------------|------------|
+| -------- | -------------- | ------------ |
 | **Cold Start** | 32ms | ~100-150ms |
 | **Memory** | 48MB | ~80-120MB |
 | **Concurrency** | Tokio async | Goroutines |
