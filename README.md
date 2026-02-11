@@ -326,17 +326,73 @@ air
 
 ### Testing
 
+The project includes comprehensive unit tests for all components.
+
+#### Test Structure
+
+```
+*_test.go files:
+├── lambdas/
+│   ├── authorizer/main_test.go       # JWT authorizer tests
+│   ├── event-router/main_test.go     # Circuit breaker & routing tests
+│   ├── event-transformer/main_test.go # Validation & enrichment tests
+│   ├── health-checker/main_test.go   # Health aggregation tests
+│   └── stream-processor/main_test.go # DynamoDB streams tests
+├── kafka-consumer/
+│   ├── main_test.go                  # Consumer integration tests
+│   └── processor/cdc_test.go         # CDC processing tests
+└── pkg/
+    ├── awsutils/awsutils_test.go     # AWS client helper tests
+    ├── events/types_test.go          # Event type tests
+    └── metrics/metrics_test.go       # Prometheus metrics tests
+```
+
+#### Running Tests
+
 ```bash
 # Run all tests
 go test ./...
 
+# Run with verbose output
+go test -v ./...
+
+# Run specific package tests
+go test ./lambdas/event-router/...
+go test ./pkg/events/...
+
+# Run tests matching a pattern
+go test -run TestCircuitBreaker ./...
+```
+
+#### Code Coverage
+
+```bash
 # Run with coverage
 go test -cover ./...
 
 # Generate coverage report
 go test -coverprofile=coverage.out ./...
 go tool cover -html=coverage.out
+
+# Coverage by package
+go test -cover ./lambdas/... ./pkg/... ./kafka-consumer/...
 ```
+
+**Coverage Target**: 80%+ for all packages
+
+#### Race Detection
+
+```bash
+# Run with race detector (important for concurrent code)
+go test -race ./...
+```
+
+#### Testing Patterns
+
+- **Table-driven tests**: Used for testing multiple input/output combinations
+- **Mocks**: AWS SDK calls are mocked using interfaces
+- **Test fixtures**: Sample events in `testdata/` directories where applicable
+- **Parallel tests**: Use `t.Parallel()` for independent test cases
 
 ### Linting
 

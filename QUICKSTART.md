@@ -69,6 +69,12 @@ make logs-consumer
 # Run tests
 make test
 
+# Run tests with coverage
+go test -cover ./...
+
+# Run tests with race detection
+go test -race ./...
+
 # Build Lambda functions
 make build-lambdas
 
