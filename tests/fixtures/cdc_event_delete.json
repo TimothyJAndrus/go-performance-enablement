@@ -1,0 +1,14 @@
+{
+  "operation": "DELETE",
+  "table_name": "customers",
+  "timestamp": "2026-02-11T14:00:00Z",
+  "before": {
+    "customer_id": "cust-67890",
+    "email": "deleted.user@example.com",
+    "first_name": "Deleted",
+    "last_name": "User",
+    "created_at": "2025-01-15T08:00:00Z",
+    "updated_at": "2026-02-11T14:00:00Z"
+  },
+  "after": null
+}

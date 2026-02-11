@@ -80,11 +80,30 @@ services:
       PERSISTENCE: 1
       DOCKER_HOST: unix:///var/run/docker.sock
     volumes:
-      - "./localstack:/etc/localstack/init/ready.d"
+      - "./docker/localstack-init:/etc/localstack/init/ready.d"
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "localstack-data:/var/lib/localstack"
     networks:
       - eda-network
+
+  # Kafka Initialization (runs once to create topics and schemas)
+  kafka-init:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-init
+    depends_on:
+      - kafka
+      - schema-registry
+    volumes:
+      - ./docker/kafka-init:/scripts
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        echo 'Waiting for Kafka and Schema Registry...'
+        sleep 15
+        /scripts/init-kafka.sh
+    networks:
+      - eda-network
+    restart: "no"
 
   # Monitoring
   prometheus:

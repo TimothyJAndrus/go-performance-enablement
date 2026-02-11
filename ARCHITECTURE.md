@@ -8,7 +8,7 @@ This document describes the architecture of the Go-based multi-region event-driv
 
 ### High-Level Architecture
 
-```
+``` TXT
 ┌─────────────────────────────────────────────────────────────────┐
 │                        Multi-Region EDA                          │
 │                                                                   │
@@ -45,23 +45,27 @@ This document describes the architecture of the Go-based multi-region event-driv
 ### 1. Lambda Functions (Go)
 
 #### Event Router
+
 **Purpose**: Routes events between regions with circuit breaker pattern  
 **Runtime**: Go 1.24.3 on provided.al2023  
 **Memory**: 128MB  
 **Timeout**: 30s
 
 **Key Features**:
+
 - Circuit breaker (Closed → Open → Half-Open)
 - Zstd compression for cross-region transfer
 - Dead letter queue integration
 - Prometheus metrics export
 
 **Performance**:
+
 - Cold start: 100-150ms
 - Warm execution: 8-12ms (p99)
 - Throughput: 8,000-10,000 req/s
 
 **Code Structure**:
+
 ```go
 lambdas/event-router/
 ├── main.go              # Handler and circuit breaker
@@ -69,41 +73,48 @@ lambdas/event-router/
 ```
 
 #### Stream Processor
+
 **Purpose**: Processes DynamoDB Streams for CDC replication  
 **Runtime**: Go 1.24.3 on provided.al2023  
 **Memory**: 256MB  
 **Timeout**: 60s
 
 **Key Features**:
+
 - Handles INSERT, UPDATE, DELETE operations
 - Cross-region replication
 - EventBridge event publishing
 - DLQ for failed events
 
 **Performance**:
+
 - Batch size: 100 records
 - Processing latency: 10-15ms per record
 - Error rate: <0.1%
 
 #### Event Transformer
+
 **Purpose**: Validates, enriches, and normalizes events  
 **Runtime**: Go 1.24.3 on provided.al2023  
 **Memory**: 512MB  
 **Timeout**: 60s
 
 **Key Features**:
+
 - Regex-based validation (email, UUID, etc.)
 - Field enrichment with geolocation
 - Data normalization (lowercase, formatting)
 - Separate streams for valid/invalid events
 
 **Validation Rules**:
+
 - Required fields: event_id, event_type, source_region, timestamp
 - Email format validation
 - Timestamp bounds checking
 - Custom business rules
 
 #### Health Checker
+
 **Purpose**: Aggregates health status across regions  
 **Runtime**: Go 1.24.3 on provided.al2023  
 **Memory**: 256MB  
@@ -111,6 +122,7 @@ lambdas/event-router/
 **Schedule**: Every 5 minutes (EventBridge)
 
 **Health Checks**:
+
 - DynamoDB: ListTables API call
 - EventBridge: ListEventBuses API call
 - SQS: ListQueues API call
@@ -119,12 +131,14 @@ lambdas/event-router/
 **Output**: Aggregated HealthCheckEvent published to EventBridge
 
 #### API Authorizer
+
 **Purpose**: JWT validation for API Gateway  
 **Runtime**: Go 1.24.3 on provided.al2023  
 **Memory**: 128MB  
 **Timeout**: 5s
 
 **Key Features**:
+
 - HMAC-SHA256 and RSA-256 support
 - Issuer and audience validation
 - Token expiration checking
@@ -139,7 +153,8 @@ lambdas/event-router/
 **Deployment**: Kubernetes Deployment with HPA
 
 **Architecture**:
-```
+
+``` TXT
 kafka-consumer/
 ├── main.go                    # Entry point, config
 ├── consumer/
@@ -150,6 +165,7 @@ kafka-consumer/
 ```
 
 **Key Features**:
+
 - Manual offset commits for exactly-once semantics
 - Graceful shutdown with signal handling
 - Prometheus metrics on :9090/metrics
@@ -157,12 +173,14 @@ kafka-consumer/
 - Avro deserialization with Schema Registry
 
 **Performance**:
+
 - Throughput: 8,000-12,000 msgs/sec per pod
 - Latency: <15ms p99 processing time
 - Memory: 200-400MB per pod
 - Consumer lag: <1,000 messages sustained
 
 **Kubernetes Configuration**:
+
 - Min replicas: 3
 - Max replicas: 10
 - HPA: CPU 70%, Memory 80%, Consumer lag
@@ -173,9 +191,11 @@ kafka-consumer/
 ### 3. Shared Packages
 
 #### pkg/events
+
 **Purpose**: Common event types and schemas
 
 **Types**:
+
 - `BaseEvent`: Core event structure
 - `CrossRegionEvent`: Cross-region wrapper with compression
 - `CDCEvent`: Change Data Capture from Qlik
@@ -185,9 +205,11 @@ kafka-consumer/
 - `DeadLetterEvent`: Failed event wrapper
 
 #### pkg/awsutils
+
 **Purpose**: AWS SDK helpers and utilities
 
 **Components**:
+
 - `AWSClients`: Client initialization for all services
 - `EventBridgePublisher`: Event publishing with retry
 - `DynamoDBHelper`: CRUD operations wrapper
@@ -195,9 +217,11 @@ kafka-consumer/
 - DLQ message handling
 
 #### pkg/metrics
+
 **Purpose**: Prometheus metrics collection
 
 **Metrics**:
+
 - Lambda: invocations, errors, duration
 - Kafka: messages consumed, lag, processing duration
 - CDC: events processed by operation type
@@ -211,7 +235,7 @@ kafka-consumer/
 
 ### 1. CDC Event Processing Flow
 
-```
+``` TXT
 Qlik → Kafka Topic → Schema Registry → Kafka Consumer (EKS)
                                              ↓
                                     Process CDC Event
@@ -231,7 +255,7 @@ Qlik → Kafka Topic → Schema Registry → Kafka Consumer (EKS)
 
 ### 2. Cross-Region Event Flow
 
-```
+``` TXT
 Region A Event → DynamoDB → DynamoDB Streams → Event Router Lambda
                                                          ↓
                                                 Circuit Breaker Check
@@ -245,7 +269,7 @@ Region A Event → DynamoDB → DynamoDB Streams → Event Router Lambda
 
 ### 3. Event Transformation Flow
 
-```
+``` TXT
 Raw Event → EventBridge → Event Transformer Lambda
                                     ↓
                          ┌──────────┴──────────┐
@@ -265,26 +289,31 @@ Raw Event → EventBridge → Event Transformer Lambda
 ## Concurrency Model
 
 ### Go Goroutines
+
 Go's native concurrency model provides efficient parallel processing:
 
 **Lambda Functions**:
+
 - Each Lambda invocation runs in a single goroutine
 - Use goroutines for parallel health checks
 - Mutex for shared state (circuit breaker)
 
 **Kafka Consumer**:
+
 - Main goroutine: Message polling loop
 - Worker goroutines: Message processing (configurable)
 - Signal handling goroutine: Graceful shutdown
 - Metrics server goroutine: Prometheus endpoint
 
 **Advantages**:
+
 - Lightweight (2KB stack per goroutine)
 - M:N scheduling (efficient CPU utilization)
 - Channel-based communication
 - No callback hell (unlike Node.js)
 
 **Trade-offs vs Rust**:
+
 - Runtime overhead: ~2-3ms per goroutine creation
 - GC pauses: ~1ms STW (though rare with Go 1.24.3+)
 - Memory: ~5MB base overhead for runtime
@@ -292,6 +321,7 @@ Go's native concurrency model provides efficient parallel processing:
 ## Error Handling
 
 ### Lambda Functions
+
 ```go
 // Structured error handling
 if err := processEvent(ctx, event); err != nil {
@@ -308,6 +338,7 @@ if err := processEvent(ctx, event); err != nil {
 ```
 
 ### Kafka Consumer
+
 ```go
 // Manual offset commit on success
 if err := processor.Process(ctx, msg); err != nil {
@@ -321,6 +352,7 @@ consumer.CommitMessage(msg)
 ```
 
 ### Circuit Breaker
+
 ```go
 // State machine: Closed → Open → Half-Open → Closed
 err := circuitBreaker.Execute(func() error {
@@ -339,13 +371,16 @@ if err != nil {
 ## Monitoring & Observability
 
 ### Metrics
+
 All components expose Prometheus metrics:
 
 **Lambda Functions**: Embedded CloudWatch Metrics
 **Kafka Consumer**: HTTP endpoint on :9090/metrics
 
 ### Logging
+
 Structured logging with zap:
+
 ```go
 logger.Info("processing event",
     zap.String("event_id", event.EventID),
@@ -355,6 +390,7 @@ logger.Info("processing event",
 ```
 
 ### Tracing
+
 - Trace ID propagation through event metadata
 - Correlation ID for request tracking
 - AWS X-Ray integration (optional)
@@ -362,41 +398,51 @@ logger.Info("processing event",
 ## Performance Characteristics
 
 ### Lambda Cold Starts
+
 **Go**: 100-150ms  
 **Factors**:
+
 - Runtime initialization: ~50ms
 - Package imports: ~30ms
 - AWS SDK initialization: ~20ms
 - Secret retrieval: ~50ms (cached after first call)
 
 **Optimization**:
+
 - SnapStart (future): ~50ms reduction
 - Provisioned concurrency: Eliminate cold starts
 - Minimize imports: Only import what's needed
 
 ### Warm Execution
+
 **P50**: 5-8ms  
 **P99**: 8-12ms  
 **P99.9**: 15-20ms
 
 ### Memory Usage
+
 **Lambda**:
+
 - Minimum: 80MB (small functions)
 - Typical: 128-256MB
 - Maximum: 512MB (event transformer)
 
 **Kafka Consumer**:
+
 - Base: 200MB
 - Under load: 300-400MB
 - Peak: 600MB (backlog processing)
 
 ### Throughput
+
 **Lambda**:
+
 - Concurrent executions: 1,000 (default)
 - Burst: 3,000 (first minute)
 - Sustained: 8,000-10,000 req/s per function
 
 **Kafka Consumer**:
+
 - Per pod: 8,000-12,000 msgs/sec
 - 3 pods: 24,000-36,000 msgs/sec
 - 10 pods (max): 80,000-120,000 msgs/sec
@@ -404,7 +450,8 @@ logger.Info("processing event",
 ## Deployment Architecture
 
 ### Lambda Deployment
-```
+
+``` TXT
 GitHub → GitHub Actions → Build (GOOS=linux GOARCH=arm64)
               ↓
          Package (zip)
@@ -415,7 +462,8 @@ GitHub → GitHub Actions → Build (GOOS=linux GOARCH=arm64)
 ```
 
 ### EKS Deployment
-```
+
+``` TXT
 GitHub → GitHub Actions → Build Docker Image
               ↓
          Push to GHCR
@@ -430,6 +478,7 @@ GitHub → GitHub Actions → Build Docker Image
 ## Disaster Recovery
 
 ### Automatic Failover
+
 1. Health checker detects unhealthy region
 2. Circuit breaker opens for failed region
 3. Traffic routes to healthy region
@@ -438,11 +487,13 @@ GitHub → GitHub Actions → Build Docker Image
 6. Gradual traffic shift back (circuit breaker half-open)
 
 ### Recovery Time Objective (RTO)
+
 - Detection: 5 minutes (health check interval)
 - Failover: 2 minutes (circuit breaker + routing)
 - **Total RTO**: 7 minutes
 
 ### Recovery Point Objective (RPO)
+
 - DynamoDB Global Tables: <1 second
 - Kafka Cluster Linking: <5 seconds
 - EventBridge: At-least-once delivery
@@ -450,19 +501,22 @@ GitHub → GitHub Actions → Build Docker Image
 
 ## Security
 
-### Lambda Functions
+### Lambda Functions ID
+
 - IAM roles with least privilege
 - VPC attachment for private resources
 - Secrets Manager for sensitive data
 - Environment variable encryption
 
-### EKS
+### EKS ID
+
 - IRSA (IAM Roles for Service Accounts)
 - Network policies for pod-to-pod
 - Security groups for node traffic
 - Secrets stored in AWS Secrets Manager
 
 ### Kafka
+
 - SASL/SSL authentication
 - mTLS for inter-broker communication
 - ACLs for topic access control
@@ -471,18 +525,21 @@ GitHub → GitHub Actions → Build Docker Image
 ## Cost Optimization
 
 ### Lambda
+
 - ARM64 (Graviton2): 20% cheaper than x86
 - Right-sized memory allocation
 - EventBridge instead of polling
 - Batch processing where possible
 
 ### EKS
+
 - Spot instances for non-critical workloads
 - Horizontal pod autoscaling
 - Cluster autoscaler for node efficiency
 - Reserved instances for baseline capacity
 
 ### Data Transfer
+
 - Zstd compression: 60-70% size reduction
 - Same-region data transfer: Free
 - Cross-region: $0.02/GB (minimized with compression)
@@ -490,7 +547,7 @@ GitHub → GitHub Actions → Build Docker Image
 ## Comparison: Go vs Rust
 
 | Metric | Go | Rust | Winner |
-|--------|----|----|--------|
+| -------- | ---- | ---- | -------- |
 | Cold Start | 100-150ms | 32ms | Rust |
 | Warm Exec | 8-12ms | 7ms | Rust |
 | Memory | 80-120MB | 48MB | Rust |

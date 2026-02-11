@@ -33,7 +33,8 @@ Thumbs.db
 
 # Logs
 *.log
-logs/
+logs/*.log
+!logs/.gitkeep
 
 # Docker
 docker-compose.override.yml
@@ -57,7 +58,9 @@ docker-compose.override.yml
 dist/
 
 # LocalStack data
-localstack/
+localstack/*.json
+localstack/*.yaml
+!localstack/.gitkeep
 volume/
 
 # Monitoring data
@@ -68,3 +71,7 @@ localstack-data/
 # Temporary files
 tmp/
 temp/
+
+# Benchmark results
+benchmark-results.txt
+*.prof

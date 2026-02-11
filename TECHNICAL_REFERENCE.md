@@ -9,6 +9,7 @@ This document consolidates Kafka/CDC architecture, performance benchmarks, CI/CD
 ### Confluent Kafka Integration
 
 **Cluster Configuration**:
+
 - Provider: Confluent Cloud
 - Cluster Type: Dedicated
 - Regions: us-west-2, us-east-1
@@ -18,7 +19,8 @@ This document consolidates Kafka/CDC architecture, performance benchmarks, CI/CD
 ### Qlik CDC Integration
 
 **CDC Flow**:
-```
+
+``` TXT
 Source Database → Qlik Replicate → Kafka Topics → Schema Registry
                                           ↓
                                     Go Consumer (EKS)
@@ -31,6 +33,7 @@ Source Database → Qlik Replicate → Kafka Topics → Schema Registry
 ```
 
 **Qlik Configuration**:
+
 - Change Tables: Full LOB support
 - Batch Optimized Apply: Enabled
 - Target: Kafka endpoint with AVRO format
@@ -38,6 +41,7 @@ Source Database → Qlik Replicate → Kafka Topics → Schema Registry
 - Topics: `qlik.{table_name}`
 
 **CDC Operations Supported**:
+
 - INSERT: New record creation
 - UPDATE: Record modifications
 - DELETE: Record removal
@@ -46,6 +50,7 @@ Source Database → Qlik Replicate → Kafka Topics → Schema Registry
 ### Kafka Consumer Architecture (Go)
 
 **Consumer Group Configuration**:
+
 ```go
 consumer.KafkaConfig{
     GroupID: "go-cdc-consumers",
@@ -57,6 +62,7 @@ consumer.KafkaConfig{
 ```
 
 **Processing Model**:
+
 1. Poll message from Kafka
 2. Deserialize Avro with Schema Registry
 3. Process CDC event (INSERT/UPDATE/DELETE/REFRESH)
@@ -65,12 +71,14 @@ consumer.KafkaConfig{
 6. **Manual offset commit** (exactly-once semantics)
 
 **Error Handling**:
+
 - Parse errors: Log and skip (bad data)
 - Processing errors: Don't commit offset (retry)
 - DynamoDB errors: Exponential backoff
 - EventBridge errors: Continue (non-critical)
 
 **Scaling**:
+
 - Horizontal: 3-10 pods (HPA)
 - Vertical: 500m-2000m CPU, 512Mi-2Gi memory
 - Partitions: 3 per topic
@@ -79,6 +87,7 @@ consumer.KafkaConfig{
 ### Schema Registry Integration
 
 **Avro Schema Example**:
+
 ```json
 {
   "type": "record",
@@ -95,6 +104,7 @@ consumer.KafkaConfig{
 ```
 
 **Go Deserialization**:
+
 ```go
 // Using confluent-kafka-go with Schema Registry
 import "github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
@@ -106,7 +116,7 @@ native, schema, err := codec.NativeFromBinary(msg.Value)
 ### Topic Configuration
 
 | Topic | Partitions | Replication | Retention | Compaction |
-|-------|------------|-------------|-----------|------------|
+| ------- | ------------ | ------------- | ----------- | ------------ |
 | qlik.customers | 3 | 3 | 7 days | No |
 | qlik.orders | 3 | 3 | 7 days | No |
 | qlik.products | 3 | 3 | 30 days | Yes |
@@ -116,11 +126,13 @@ native, schema, err := codec.NativeFromBinary(msg.Value)
 ### Multi-Region Replication
 
 **Cluster Linking**:
+
 - Replication lag: <5 seconds
 - Bandwidth: Up to 100 MB/s
 - Failover: Manual (planned) or Automatic (unplanned)
 
 **Disaster Recovery**:
+
 1. Primary region failure detected
 2. Consumer group rebalances to secondary
 3. Cluster link promotes mirror topics
@@ -135,7 +147,7 @@ native, schema, err := codec.NativeFromBinary(msg.Value)
 #### Lambda Cold Start Comparison
 
 | Runtime | Cold Start (ms) | Improvement vs Go |
-|---------|-----------------|-------------------|
+| --------- | ----------------- | ------------------- |
 | **Go 1.24.3** | **100-150** | Baseline |
 | Rust | 32 | 68ms faster (⬆️ 68%) |
 | Node.js 20 | 200 | 50ms slower (⬇️ 33%) |
@@ -145,7 +157,7 @@ native, schema, err := codec.NativeFromBinary(msg.Value)
 #### Warm Execution (p99)
 
 | Runtime | Latency (ms) | Throughput (req/s) | Memory (MB) |
-|---------|--------------|---------------------|-------------|
+| --------- | -------------- | --------------------- | ------------- |
 | **Go 1.24.3** | **8-12** | **8,000-10,000** | **80-120** |
 | Rust | 7 | 12,450 | 48 |
 | Node.js 20 | 23 | 4,230 | 142 |
@@ -155,7 +167,7 @@ native, schema, err := codec.NativeFromBinary(msg.Value)
 #### Cost Comparison (per 1M requests)
 
 | Runtime | Cost | vs Go |
-|---------|------|-------|
+| --------- | ------ | ------- |
 | **Go 1.24.3** | **$1.05** | Baseline |
 | Rust | $0.95 | $0.10 cheaper (⬇️ 9.5%) |
 | Node.js 20 | $1.21 | $0.16 more (⬆️ 15%) |
@@ -167,7 +179,7 @@ native, schema, err := codec.NativeFromBinary(msg.Value)
 #### Per-Pod Metrics
 
 | Metric | Go | Rust | Node.js |
-|--------|----|----- |---------|
+| -------- | ---- | ----- | --------- |
 | Throughput | 8-12K msg/s | 15-18K msg/s | 4-6K msg/s |
 | Latency (p99) | <15ms | <10ms | <25ms |
 | Memory | 200-400MB | 150-250MB | 300-500MB |
@@ -177,11 +189,13 @@ native, schema, err := codec.NativeFromBinary(msg.Value)
 #### Scaling Characteristics
 
 **3 Pods** (baseline):
+
 - Go: 24-36K msg/s
 - Rust: 45-54K msg/s
 - Node.js: 12-18K msg/s
 
 **10 Pods** (max scale):
+
 - Go: 80-120K msg/s
 - Rust: 150-180K msg/s
 - Node.js: 40-60K msg/s
@@ -189,6 +203,7 @@ native, schema, err := codec.NativeFromBinary(msg.Value)
 ### Real-World Scenario: Event Router Lambda
 
 **Test Configuration**:
+
 - Event size: 5KB (compressed to 1.5KB with zstd)
 - Target: Cross-region EventBridge
 - Circuit breaker: Enabled
@@ -197,7 +212,7 @@ native, schema, err := codec.NativeFromBinary(msg.Value)
 **Results**:
 
 | Runtime | Cold Start | Warm (p50) | Warm (p99) | Errors |
-|---------|-----------|------------|------------|---------|
+| --------- | ----------- | ------------ | ------------ | --------- |
 | Go | 125ms | 8ms | 12ms | 0.02% |
 | Rust | 35ms | 6ms | 9ms | 0.01% |
 | Node.js | 205ms | 18ms | 28ms | 0.05% |
@@ -207,7 +222,7 @@ native, schema, err := codec.NativeFromBinary(msg.Value)
 **Scenario**: 10M events/day across 5 Lambda functions
 
 | Component | Go | Rust | Savings |
-|-----------|----|----|---------|
+| ----------- | ---- | ---- | --------- |
 | Lambda Compute | $38,325 | $34,675 | $3,650 |
 | Data Transfer | $7,300 | $7,300 | $0 |
 | DynamoDB | $12,000 | $12,000 | $0 |
@@ -318,7 +333,8 @@ jobs:
 ### Octopus Deploy Integration
 
 **Deployment Flow**:
-```
+
+``` TXT
 GitHub Actions → Build Artifacts → Upload to S3
                                          ↓
                               Octopus Deploy Trigger
@@ -330,6 +346,7 @@ GitHub Actions → Build Artifacts → Upload to S3
 ```
 
 **Octopus Configuration**:
+
 - Project: go-performance-enablement
 - Environments: dev, staging, prod
 - Deployment targets: AWS (Lambda), Kubernetes (EKS)
@@ -578,22 +595,26 @@ terraform apply -var-file=prod.tfvars -auto-approve=false
 ### Key Metrics to Monitor
 
 **Lambda Functions**:
+
 - Invocations, Errors, Duration
 - Throttles, Concurrent Executions
 - DLQ message count
 
 **Kafka Consumer**:
+
 - Consumer lag (<1000 messages)
 - Processing duration (p99 <15ms)
 - Error rate (<0.1%)
 - Pod CPU/Memory usage
 
 **DynamoDB**:
+
 - Read/Write capacity
 - Throttled requests
 - Replication lag (Global Tables)
 
 **EventBridge**:
+
 - Events published
 - Failed invocations
 - Rule matches

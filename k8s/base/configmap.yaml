@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-consumer-config
+data:
+  KAFKA_GROUP_ID: "go-cdc-consumers"
+  KAFKA_AUTO_OFFSET_RESET: "earliest"
+  KAFKA_ENABLE_AUTO_COMMIT: "false"
+  KAFKA_SESSION_TIMEOUT_MS: "30000"
+  KAFKA_MAX_POLL_INTERVAL_MS: "300000"
+  METRICS_PORT: ":9090"
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"

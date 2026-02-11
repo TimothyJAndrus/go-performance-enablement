@@ -33,9 +33,9 @@ echo -e "${GREEN}✓ All prerequisites satisfied${NC}"
 echo -e "\n${YELLOW}Creating directories...${NC}"
 mkdir -p monitoring/grafana/datasources
 mkdir -p monitoring/grafana/dashboards
-mkdir -p localstack
 mkdir -p logs
 mkdir -p tests/fixtures
+mkdir -p bin
 
 echo -e "${GREEN}✓ Directories created${NC}"
 
@@ -45,94 +45,17 @@ docker-compose up -d zookeeper kafka schema-registry localstack prometheus grafa
 
 echo -e "${GREEN}✓ Infrastructure services started${NC}"
 
-# Wait for Kafka to be ready
-echo -e "\n${YELLOW}Waiting for Kafka to be ready...${NC}"
-MAX_RETRIES=30
-RETRY_COUNT=0
+# Run Kafka initialization (creates topics and registers schemas)
+echo -e "\n${YELLOW}Running Kafka initialization...${NC}"
+docker-compose up kafka-init
+echo -e "${GREEN}✓ Kafka initialization complete (topics and schemas created)${NC}"
 
-while ! docker-compose exec -T kafka kafka-broker-api-versions --bootstrap-server localhost:9092 &> /dev/null; do
-    RETRY_COUNT=$((RETRY_COUNT + 1))
-    if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
-        echo -e "${RED}Kafka failed to start after $MAX_RETRIES attempts${NC}"
-        exit 1
-    fi
-    echo "Waiting for Kafka... (attempt $RETRY_COUNT/$MAX_RETRIES)"
-    sleep 2
-done
+# Note: Kafka topics and schemas are now created by kafka-init container
+# See docker/kafka-init/init-kafka.sh for details
 
-echo -e "${GREEN}✓ Kafka is ready${NC}"
-
-# Create Kafka topics
-echo -e "\n${YELLOW}Creating Kafka topics...${NC}"
-
-TOPICS=(
-    "qlik.customers:3:1"
-    "qlik.orders:3:1"
-    "qlik.products:3:1"
-    "events.transformed:3:1"
-    "events.validation_failed:3:1"
-)
-
-for TOPIC_CONFIG in "${TOPICS[@]}"; do
-    IFS=':' read -r TOPIC PARTITIONS REPLICATION <<< "$TOPIC_CONFIG"
-    
-    echo "Creating topic: $TOPIC (partitions: $PARTITIONS, replication: $REPLICATION)"
-    
-    docker-compose exec -T kafka kafka-topics \
-        --create \
-        --if-not-exists \
-        --topic "$TOPIC" \
-        --partitions "$PARTITIONS" \
-        --replication-factor "$REPLICATION" \
-        --bootstrap-server localhost:9092 || true
-done
-
-echo -e "${GREEN}✓ Kafka topics created${NC}"
-
-# Wait for Schema Registry
-echo -e "\n${YELLOW}Waiting for Schema Registry...${NC}"
-RETRY_COUNT=0
-
-while ! curl -s http://localhost:8081/subjects &> /dev/null; do
-    RETRY_COUNT=$((RETRY_COUNT + 1))
-    if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
-        echo -e "${RED}Schema Registry failed to start${NC}"
-        exit 1
-    fi
-    echo "Waiting for Schema Registry... (attempt $RETRY_COUNT/$MAX_RETRIES)"
-    sleep 2
-done
-
-echo -e "${GREEN}✓ Schema Registry is ready${NC}"
-
-# Register Avro schemas
-echo -e "\n${YELLOW}Registering Avro schemas...${NC}"
-
-cat > /tmp/customer-schema.json <<'EOF'
-{
-  "type": "record",
-  "name": "Customer",
-  "namespace": "com.wgu.qlik",
-  "fields": [
-    {"name": "customer_id", "type": "string"},
-    {"name": "email", "type": "string"},
-    {"name": "first_name", "type": "string"},
-    {"name": "last_name", "type": "string"},
-    {"name": "created_at", "type": "long"},
-    {"name": "updated_at", "type": "long"}
-  ]
-}
-EOF
-
-curl -X POST http://localhost:8081/subjects/qlik.customers-value/versions \
-    -H "Content-Type: application/vnd.schemaregistry.v1+json" \
-    -d "{\"schema\":$(jq -c . < /tmp/customer-schema.json | jq -R .)}" \
-    &> /dev/null || true
-
-echo -e "${GREEN}✓ Schemas registered${NC}"
-
-# Wait for LocalStack
+# Wait for LocalStack (resources are created automatically by init script)
 echo -e "\n${YELLOW}Waiting for LocalStack...${NC}"
+MAX_RETRIES=30
 RETRY_COUNT=0
 
 while ! curl -s http://localhost:4566/_localstack/health | grep -q "available"; do
@@ -146,54 +69,7 @@ while ! curl -s http://localhost:4566/_localstack/health | grep -q "available"; 
 done
 
 echo -e "${GREEN}✓ LocalStack is ready${NC}"
-
-# Create AWS resources in LocalStack
-echo -e "\n${YELLOW}Creating AWS resources in LocalStack...${NC}"
-
-AWS_ENDPOINT="http://localhost:4566"
-AWS_REGION="us-west-2"
-
-export AWS_ACCESS_KEY_ID=test
-export AWS_SECRET_ACCESS_KEY=test
-export AWS_DEFAULT_REGION=$AWS_REGION
-
-# Create DynamoDB table
-echo "Creating DynamoDB table: events"
-aws dynamodb create-table \
-    --endpoint-url $AWS_ENDPOINT \
-    --table-name events \
-    --attribute-definitions \
-        AttributeName=event_id,AttributeType=S \
-        AttributeName=timestamp,AttributeType=N \
-    --key-schema \
-        AttributeName=event_id,KeyType=HASH \
-        AttributeName=timestamp,KeyType=RANGE \
-    --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 \
-    &> /dev/null || true
-
-# Create SQS queues
-echo "Creating SQS DLQ: event-dlq"
-aws sqs create-queue \
-    --endpoint-url $AWS_ENDPOINT \
-    --queue-name event-dlq \
-    &> /dev/null || true
-
-# Create EventBridge event bus
-echo "Creating EventBridge bus: eda-event-bus"
-aws events create-event-bus \
-    --endpoint-url $AWS_ENDPOINT \
-    --name eda-event-bus \
-    &> /dev/null || true
-
-# Create Secrets Manager secret
-echo "Creating secret: jwt-secret"
-aws secretsmanager create-secret \
-    --endpoint-url $AWS_ENDPOINT \
-    --name jwt-secret \
-    --secret-string "dev-secret-key-do-not-use-in-production" \
-    &> /dev/null || true
-
-echo -e "${GREEN}✓ AWS resources created${NC}"
+echo -e "${GREEN}  (AWS resources created automatically by docker/localstack-init/init-aws.sh)${NC}"
 
 # Build Go application
 echo -e "\n${YELLOW}Building Go applications...${NC}"

@@ -1,0 +1,38 @@
+{
+  "event_id": "evt-transformed-12345",
+  "event_type": "customer.created",
+  "source_region": "us-west-2",
+  "timestamp": "2026-02-11T10:30:00Z",
+  "correlation_id": "corr-12345",
+  "metadata": {
+    "source_service": "customer-service",
+    "trace_id": "trace-transformed-abc123",
+    "version": "1.0"
+  },
+  "payload": {
+    "customer_id": "cust-12345",
+    "email": "john.doe@example.com",
+    "first_name": "John",
+    "last_name": "Doe"
+  },
+  "transformation_rules": [
+    "validate_required_fields",
+    "validate_email_format",
+    "enrich_geolocation",
+    "normalize_case"
+  ],
+  "enrichment_data": {
+    "geolocation": {
+      "country": "United States",
+      "region": "Oregon",
+      "city": "Portland",
+      "timezone": "America/Los_Angeles"
+    },
+    "customer_segment": "new_user",
+    "risk_score": 0.12
+  },
+  "validation_errors": [],
+  "is_valid": true,
+  "transformed_at": "2026-02-11T10:30:02Z",
+  "processing_duration_ms": 25
+}

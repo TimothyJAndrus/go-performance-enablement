@@ -1,0 +1,57 @@
+{
+  "Records": [
+    {
+      "eventID": "evt-stream-001",
+      "eventName": "INSERT",
+      "eventVersion": "1.1",
+      "eventSource": "aws:dynamodb",
+      "awsRegion": "us-west-2",
+      "dynamodb": {
+        "ApproximateCreationDateTime": 1707648600,
+        "Keys": {
+          "event_id": { "S": "evt-12345" },
+          "timestamp": { "N": "1707648600000" }
+        },
+        "NewImage": {
+          "event_id": { "S": "evt-12345" },
+          "timestamp": { "N": "1707648600000" },
+          "event_type": { "S": "customer.created" },
+          "source_region": { "S": "us-west-2" },
+          "payload": { "S": "{\"customer_id\":\"cust-001\",\"email\":\"test@example.com\"}" }
+        },
+        "SequenceNumber": "100000000000000000001",
+        "SizeBytes": 256,
+        "StreamViewType": "NEW_AND_OLD_IMAGES"
+      },
+      "eventSourceARN": "arn:aws:dynamodb:us-west-2:123456789012:table/events/stream/2026-02-11T00:00:00.000"
+    },
+    {
+      "eventID": "evt-stream-002",
+      "eventName": "MODIFY",
+      "eventVersion": "1.1",
+      "eventSource": "aws:dynamodb",
+      "awsRegion": "us-west-2",
+      "dynamodb": {
+        "ApproximateCreationDateTime": 1707648660,
+        "Keys": {
+          "event_id": { "S": "evt-12345" },
+          "timestamp": { "N": "1707648600000" }
+        },
+        "OldImage": {
+          "event_id": { "S": "evt-12345" },
+          "timestamp": { "N": "1707648600000" },
+          "status": { "S": "pending" }
+        },
+        "NewImage": {
+          "event_id": { "S": "evt-12345" },
+          "timestamp": { "N": "1707648600000" },
+          "status": { "S": "processed" }
+        },
+        "SequenceNumber": "100000000000000000002",
+        "SizeBytes": 512,
+        "StreamViewType": "NEW_AND_OLD_IMAGES"
+      },
+      "eventSourceARN": "arn:aws:dynamodb:us-west-2:123456789012:table/events/stream/2026-02-11T00:00:00.000"
+    }
+  ]
+}

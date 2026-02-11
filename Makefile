@@ -1,4 +1,4 @@
-.PHONY: help build test clean install-tools setup-local start stop logs fmt lint docker-build deploy-dev deploy-prod
+.PHONY: help build test clean install-tools setup-local start stop logs fmt lint docker-build deploy-dev deploy-stage deploy-prod test-race benchmark terraform-init terraform-plan terraform-apply
 
 # Variables
 GO := go
@@ -94,7 +94,16 @@ test-integration: ## Run integration tests
 
 benchmark: ## Run benchmarks
 	@echo "$(YELLOW)Running benchmarks...$(NC)"
-	$(GO) test -bench=. -benchmem ./...
+	$(GO) test -bench=. -benchmem ./benchmarks/...
+
+benchmark-all: ## Run all benchmarks with CPU profiling
+	@echo "$(YELLOW)Running full benchmarks...$(NC)"
+	$(GO) test -bench=. -benchmem -count=5 ./benchmarks/... | tee benchmark-results.txt
+	@echo "$(GREEN)✓ Results saved to benchmark-results.txt$(NC)"
+
+test-race: ## Run tests with race detector
+	@echo "$(YELLOW)Running tests with race detector...$(NC)"
+	$(GO) test -race ./...
 
 ##@ Code Quality
 
@@ -126,9 +135,9 @@ deploy-dev: ## Deploy to development environment
 	$(KUBECTL) apply -k k8s/overlays/dev
 	@echo "$(GREEN)✓ Deployed to dev$(NC)"
 
-deploy-staging: ## Deploy to staging environment
+deploy-stage: ## Deploy to staging environment
 	@echo "$(YELLOW)Deploying to staging...$(NC)"
-	$(KUBECTL) apply -k k8s/overlays/staging
+	$(KUBECTL) apply -k k8s/overlays/stage
 	@echo "$(GREEN)✓ Deployed to staging$(NC)"
 
 deploy-prod: ## Deploy to production environment
@@ -177,6 +186,25 @@ kafka-consume: ## Consume messages from Kafka topic (usage: make kafka-consume T
 aws-local: ## Run AWS CLI against LocalStack
 	@echo "Using LocalStack endpoint: http://localhost:4566"
 	AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test $(AWS) --endpoint-url=http://localhost:4566 $(CMD)
+
+##@ Terraform
+
+terraform-init: ## Initialize Terraform
+	@echo "$(YELLOW)Initializing Terraform...$(NC)"
+	cd terraform/sandbox && terraform init
+	@echo "$(GREEN)✓ Terraform initialized$(NC)"
+
+terraform-plan: ## Plan Terraform changes (usage: make terraform-plan ENV=dev)
+	@echo "$(YELLOW)Planning Terraform changes...$(NC)"
+	cd terraform/sandbox && terraform plan -var-file=$(ENV).tfvars
+
+terraform-apply: ## Apply Terraform changes (usage: make terraform-apply ENV=dev)
+	@echo "$(YELLOW)Applying Terraform changes...$(NC)"
+	cd terraform/sandbox && terraform apply -var-file=$(ENV).tfvars
+
+terraform-destroy: ## Destroy Terraform resources (usage: make terraform-destroy ENV=dev)
+	@echo "$(YELLOW)Destroying Terraform resources...$(NC)"
+	cd terraform/sandbox && terraform destroy -var-file=$(ENV).tfvars
 
 ##@ Monitoring
 

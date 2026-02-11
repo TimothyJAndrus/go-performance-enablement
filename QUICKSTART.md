@@ -33,6 +33,7 @@ make setup-local
 ```
 
 This will:
+
 - ✅ Start Kafka, Zookeeper, Schema Registry
 - ✅ Start LocalStack (DynamoDB, SQS, EventBridge, Secrets Manager)
 - ✅ Start Prometheus and Grafana
@@ -45,11 +46,11 @@ This will:
 
 After setup completes:
 
-- **Kafka UI**: http://localhost:8080
-- **Grafana**: http://localhost:3000 (admin/admin)
-- **Prometheus**: http://localhost:9090
-- **Kafka Consumer Metrics**: http://localhost:9091/metrics
-- **LocalStack**: http://localhost:4566
+- **Kafka UI**: <http://localhost:8080>
+- **Grafana**: <http://localhost:3000> (admin/admin)
+- **Prometheus**: <http://localhost:9090>
+- **Kafka Consumer Metrics**: <http://localhost:9091/metrics>
+- **LocalStack**: <http://localhost:4566>
 
 ## Common Commands
 
@@ -85,6 +86,7 @@ make deploy-dev
 ## Project Status
 
 ✅ **Complete**:
+
 - 5 Lambda functions (Go)
 - Kafka consumer for EKS
 - Shared packages (events, awsutils, metrics)
@@ -94,6 +96,7 @@ make deploy-dev
 - Complete documentation
 
 📋 **Remaining** (optional):
+
 - ARCHITECTURE_KAFKA.md - Kafka/Qlik CDC architecture details
 - BENCHMARKS.md - Performance comparison data
 - GitHub Actions workflows - CI/CD automation
@@ -102,11 +105,13 @@ make deploy-dev
 ## Next Steps
 
 1. **Explore the code**:
+
    ```bash
    code .
    ```
 
 2. **Run locally**:
+
    ```bash
    # Start everything
    make start
@@ -116,6 +121,7 @@ make deploy-dev
    ```
 
 3. **Test Kafka**:
+
    ```bash
    # List topics
    make kafka-topics
@@ -125,6 +131,7 @@ make deploy-dev
    ```
 
 4. **Build for deployment**:
+
    ```bash
    # Build Lambda functions
    make build-lambdas
@@ -134,6 +141,7 @@ make deploy-dev
    ```
 
 5. **Deploy**:
+
    ```bash
    # Deploy to dev
    make deploy-dev
@@ -145,6 +153,7 @@ make deploy-dev
 ## Troubleshooting
 
 ### Kafka not starting
+
 ```bash
 # Check Docker resources (needs 4GB+ RAM)
 docker stats
@@ -155,6 +164,7 @@ make start
 ```
 
 ### LocalStack not responding
+
 ```bash
 # Check health
 curl http://localhost:4566/_localstack/health
@@ -164,6 +174,7 @@ docker-compose restart localstack
 ```
 
 ### Go build errors
+
 ```bash
 # Update dependencies
 make deps
@@ -183,6 +194,7 @@ make build
 ## Support
 
 For issues or questions:
+
 1. Check `make help` for available commands
 2. View logs: `make logs`
 3. Consult FINAL_SUMMARY.md for project details

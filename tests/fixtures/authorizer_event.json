@@ -1,0 +1,32 @@
+{
+  "type": "TOKEN",
+  "authorizationToken": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLTEyMzQ1IiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNzA3NjQ4NjAwLCJleHAiOjE3MDc3MzUwMDAsImlzcyI6ImdvLXBlcmZvcm1hbmNlLWVuYWJsZW1lbnQiLCJhdWQiOiJhcGktZ2F0ZXdheSIsInJvbGVzIjpbImFkbWluIiwidXNlciJdLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtd2d1In0.SIGNATURE_PLACEHOLDER",
+  "methodArn": "arn:aws:execute-api:us-west-2:123456789012:api-id/stage/GET/resource",
+  "resource": "/customers/{customerId}",
+  "path": "/customers/cust-12345",
+  "httpMethod": "GET",
+  "headers": {
+    "Content-Type": "application/json",
+    "X-Request-ID": "req-12345",
+    "X-Correlation-ID": "corr-auth-001"
+  },
+  "queryStringParameters": {
+    "include": "orders,preferences"
+  },
+  "pathParameters": {
+    "customerId": "cust-12345"
+  },
+  "stageVariables": {
+    "environment": "dev"
+  },
+  "requestContext": {
+    "accountId": "123456789012",
+    "apiId": "api-id",
+    "stage": "dev",
+    "requestId": "req-context-12345",
+    "identity": {
+      "sourceIp": "192.168.1.100",
+      "userAgent": "Mozilla/5.0"
+    }
+  }
+}

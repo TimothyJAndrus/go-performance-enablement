@@ -1,0 +1,41 @@
+{
+  "original_event": {
+    "event_id": "evt-failed-12345",
+    "event_type": "customer.created",
+    "source_region": "us-west-2",
+    "timestamp": "2026-02-11T10:30:00Z",
+    "payload": {
+      "customer_id": "cust-invalid",
+      "email": "invalid-email-format"
+    }
+  },
+  "error_message": "Validation failed: invalid email format",
+  "error_type": "validation_error",
+  "error_code": "ERR_VALIDATION_001",
+  "failure_count": 3,
+  "first_failure": "2026-02-11T10:30:05Z",
+  "last_failure": "2026-02-11T10:32:15Z",
+  "source_handler": "event-transformer",
+  "retry_attempts": [
+    {
+      "attempt": 1,
+      "timestamp": "2026-02-11T10:30:05Z",
+      "error": "Validation failed: invalid email format"
+    },
+    {
+      "attempt": 2,
+      "timestamp": "2026-02-11T10:31:10Z",
+      "error": "Validation failed: invalid email format"
+    },
+    {
+      "attempt": 3,
+      "timestamp": "2026-02-11T10:32:15Z",
+      "error": "Validation failed: invalid email format"
+    }
+  ],
+  "metadata": {
+    "correlation_id": "corr-failed-001",
+    "trace_id": "trace-failed-abc123",
+    "original_timestamp": "2026-02-11T10:30:00Z"
+  }
+}

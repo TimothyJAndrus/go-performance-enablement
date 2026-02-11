@@ -1,0 +1,39 @@
+{
+  "topic": "qlik.customers",
+  "partition": 0,
+  "offset": 12345,
+  "timestamp": "2026-02-11T10:30:00Z",
+  "key": "cust-12345",
+  "headers": {
+    "operation": "INSERT",
+    "table": "customers",
+    "schema_version": "1",
+    "source": "qlik-replicate"
+  },
+  "value": {
+    "operation": "INSERT",
+    "table_name": "customers",
+    "timestamp": 1707648600000,
+    "before": null,
+    "after": {
+      "customer_id": "cust-12345",
+      "email": "kafka.test@example.com",
+      "first_name": "Kafka",
+      "last_name": "Test",
+      "phone": "+1-555-KAFKA-01",
+      "status": "active",
+      "created_at": 1707648600000,
+      "updated_at": 1707648600000
+    },
+    "source": {
+      "version": "1.0",
+      "connector": "qlik-replicate",
+      "name": "production-db",
+      "ts_ms": 1707648600000,
+      "snapshot": false,
+      "db": "customers_db",
+      "schema": "public",
+      "table": "customers"
+    }
+  }
+}

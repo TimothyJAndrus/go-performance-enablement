@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: kafka-consumer-base
+
+resources:
+  - kafka-consumer-deployment.yaml
+  - service.yaml
+  - serviceaccount.yaml
+  - configmap.yaml
+
+commonLabels:
+  app: kafka-consumer
+  app.kubernetes.io/name: kafka-consumer
+  app.kubernetes.io/component: cdc-processor
+  app.kubernetes.io/part-of: go-performance-enablement

@@ -1,0 +1,54 @@
+{
+  "region": "us-west-2",
+  "service": "multi-region-eda",
+  "status": "healthy",
+  "timestamp": "2026-02-11T10:30:00Z",
+  "dependencies": [
+    {
+      "name": "dynamodb",
+      "type": "database",
+      "status": "healthy",
+      "latency_ms": 45,
+      "error_rate": 0.0,
+      "last_check": "2026-02-11T10:29:55Z"
+    },
+    {
+      "name": "eventbridge",
+      "type": "messaging",
+      "status": "healthy",
+      "latency_ms": 23,
+      "error_rate": 0.0,
+      "last_check": "2026-02-11T10:29:56Z"
+    },
+    {
+      "name": "sqs",
+      "type": "queue",
+      "status": "healthy",
+      "latency_ms": 12,
+      "error_rate": 0.001,
+      "last_check": "2026-02-11T10:29:57Z"
+    },
+    {
+      "name": "kafka",
+      "type": "streaming",
+      "status": "healthy",
+      "latency_ms": 8,
+      "error_rate": 0.0,
+      "last_check": "2026-02-11T10:29:58Z"
+    }
+  ],
+  "metrics": {
+    "cpu_usage": 35.5,
+    "memory_usage": 52.3,
+    "latency_p99_ms": 45,
+    "throughput_per_sec": 1250,
+    "error_rate": 0.001,
+    "active_connections": 42
+  },
+  "circuit_breaker": {
+    "state": "closed",
+    "failure_count": 0,
+    "success_count": 15823,
+    "last_failure": null
+  }
+}
